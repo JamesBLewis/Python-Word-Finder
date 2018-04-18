@@ -1,14 +1,24 @@
+# optional, colour output using the termcolor module
+coloured = False
+
+try:
+    from termcolor import colored
+    coloured = True
+except ImportError:
+    pass
+
+
 # array to store possible matches (results)
 results = []
 
-# ask usr for word length
-WordLength = raw_input("Please enter word length: ")
-# open OSX dictionary
-with open("/usr/share/dict/words") as f:
+# open word list (taken form OSX)
+with open("words") as f:
     content = f.readlines()
 # remove /n if there and get eck line of word list
 content = [x.strip() for x in content]
 
+# ask usr for word length
+WordLength = raw_input("Please enter word length: ")
 # print to check if we were able to actually get any words from the computer
 print(str(len(content))+" words loaded")
 
@@ -34,14 +44,51 @@ while lineNum < len(content):
             for letter in tepContentLetters:
                 if letter in letters:
                     match += 1
-            #are all the letters in our word in the usr submitted, accepted letters
+            # are all the letters in our word in the usr submitted, accepted letters
             if match == int(WordLength):
                 results.append(content[lineNum])
-    #incriment our loop counter
+    # incriment our loop counter
     lineNum += 1
 
 # ask usr if they'd like the results returned and then show rsults
 print("possible words: "+ str(len(results)))
-answer = raw_input("Do you wish to see them all? ")
+
+# prompt usr as to if results are good enough
+answer = raw_input("Do you wish to rarrow to refine search further? ")
+# if they want to refine more run check for double letters
 if answer == "y" or answer == "yes":
-    print(results)
+    # create array to store words we'd like to remove
+    removedWords = []
+    # go through each result word we have obtained and check for more letters then we are able to use
+    for result in results:
+        doubledLetter = []
+        #convert each result word into list
+        tepContentLetters = list(result)
+        #for each letter in our results words see if there are repeated letters
+        for letter in tepContentLetters:
+            if result.count(letter) > 1:
+                doubledLetter.append(letter)
+        # if there is only one use of the letter in user input, add it to list of words to remove
+        for dletter in doubledLetter:
+            if letters.count(dletter) < 2 and result not in removedWords:
+                removedWords.append(result)
+    # remove invalid words found from results
+    for word in removedWords:
+        results.remove(word)
+
+    # ask usr again
+    answer = raw_input(str(len(results))+" words found. Do you wish to view matches? ")
+    if answer == "y" or answer == "yes":
+        # a nice cloured output of results unless there is no termcolor module
+        for result in results:
+            if coloured == True:
+                print colored(result, 'green')
+            else:
+                print(result)
+else:
+    # a nice cloured output of results unless there is no termcolor module
+    for result in results:
+        if coloured == True:
+            print colored(result, 'green')
+        else:
+            print(result)
